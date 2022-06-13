@@ -1,0 +1,3 @@
+[submodule "dns-perf"]
+	path = dnsperf
+	url = https://github.com/drxmknight/dockerized-dnsperf.git
