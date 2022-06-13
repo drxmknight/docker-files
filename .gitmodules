@@ -3,5 +3,5 @@
 	url = https://github.com/drxmknight/dnsperf.git
 
 [submodule "bucket-stream"]
-        path = bucket-stram
+        path = bucket-stream
         url = https://github.com/drxmknight/bucket-stream.git
