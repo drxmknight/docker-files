@@ -1,0 +1,32 @@
+version: '3.5'
+services:
+  bamboo-server:
+    image: atlassian/bamboo-server
+    container_name: bamboo-server
+    volumes:
+    - bamboo-vol:/var/atlassian/application-data/bamboo
+    ports:
+    - 8085:8085
+    - 54663:54663
+    networks:
+    - bamboo
+  
+  bamboo-agent:
+    image: atlassian/bamboo-agent-base
+    container_name: bambo-agent
+    environment:
+    - BAMBOO_SERVER=http://bamboo-server:8085/agentServer/
+    - BAMBOO_AGENT_PERMISSIVE_READINESS=true
+    volumes:
+    - bamboo-agent-vol:/var/atlassian/application-data/bamboo
+    networks:
+    - bamboo
+volumes:
+  bamboo-vol:
+    driver: local
+  bamboo-agent-vol:
+    driver: local
+
+networks:
+  bamboo:
+    driver: bridge

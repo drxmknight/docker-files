@@ -1,0 +1,7 @@
+FROM alpine:latest
+
+RUN addgroup -S prisma-group && adduser -S prisma-user -G prisma-group
+RUN apk add --no-cache curl
+RUN --mount=type=secret,id=tauth,dst=/home/twistcli-auth curl -k -u $(cat /home/twistcli-auth) -L -o twistcli https://us-east1.cloud.twistlock.com/us-2-158319473/api/v1/util/twistcli
+RUN chmod a+x ./twistcli && mv twistcli /usr/local/bin && twistcli -v
+USER prisma-user

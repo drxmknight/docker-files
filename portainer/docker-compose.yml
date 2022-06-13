@@ -1,0 +1,22 @@
+version: '3.5'
+services:
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    #privileged: true
+    restart: unless-stopped
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - portainer-data-vol:/data
+    ports:
+    - 9443:9443
+    networks:
+    - portainer
+
+volumes:
+  portainer-data-vol:
+    driver: local
+
+networks:
+  portainer:
+    driver: bridge
