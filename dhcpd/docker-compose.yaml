@@ -1,0 +1,36 @@
+version: '3.5'
+services:
+  dhcp-server:
+    privileged: true
+    build:
+      context: .
+    container_name: dhcp-server
+    #command: 
+    #- "sleep"
+    #- "99999"
+    restart: unless-stopped
+    volumes:
+    - ${PWD}/data/dhcpd.conf:/etc/dhcp/dhcpd.conf:ro
+    - ${PWD}/data/rsyslog.conf:/etc/rsyslog.conf:ro
+    networks:
+    - dhcp-net
+
+  dhcp-client:
+    privileged: true
+    build:
+      context: .
+    container_name: dhcp-client
+    command:
+    - "sleep"
+    - "99999"
+    restart: unless-stopped
+    networks:
+    - dhcp-net
+
+networks:
+  dhcp-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.28.0.0/16
