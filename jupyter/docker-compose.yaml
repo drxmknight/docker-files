@@ -1,0 +1,13 @@
+version: '3'
+services:
+  jupyter-notebook:
+    image: jupyter-notebook
+    build:
+      context: .
+    container_name: jupyter-notebook
+    user: root
+    volumes:
+    - ./work:/home/jovyan
+    ports:
+    - 8888:8888
+ 
