@@ -1,0 +1,8 @@
+version: '3'
+services:
+  kafka-client:
+    image: kafka-client
+    build:
+      context: .
+    container_name: kafka-client
+    restart: always
