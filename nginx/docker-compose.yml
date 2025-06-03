@@ -1,0 +1,44 @@
+services:
+  init-certs:
+    image: nginx:latest
+    command: >
+      /bin/sh -c "
+      if [ ! -f /certs/${DOMAIN}.crt ] || [ ! -f /certs/${DOMAIN}.key ]; then
+        echo 'Generating self-signed wildcard certificates...';
+        mkdir -p /certs;
+        openssl genpkey -algorithm RSA -out /certs/${DOMAIN}.key;
+        openssl req -new -key /certs/${DOMAIN}.key -out /certs/${DOMAIN}.csr -subj '/CN=*.${DOMAIN}';
+        echo 'subjectAltName=DNS:*.${DOMAIN}' > /certs/${DOMAIN}.ext;
+        openssl x509 -req -in /certs/${DOMAIN}.csr -signkey /certs/${DOMAIN}.key -out /certs/${DOMAIN}.crt -days 365 -extfile /certs/${DOMAIN}.ext;
+        rm /certs/${DOMAIN}.ext;
+      else
+        echo 'Certificates already exist.';
+      fi"
+    volumes:
+      - ./certs:/certs
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      - ./certs:/etc/nginx/certs
+    environment:
+      NGINX_DOMAIN: ${DOMAIN}
+      # Replace the template directly to the nginx.conf
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
+    depends_on:
+      - init-certs
+
+networks:
+  default:
+    external: true
+    name: local_network
