@@ -1,6 +1,9 @@
 services:
   n8n:
-    image: docker.n8n.io/n8nio/n8n
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: n8n
     restart: always
     ports:
       - "127.0.0.1:5678:5678"
@@ -11,10 +14,14 @@ services:
       - NODE_ENV=development
       - WEBHOOK_URL=https://${DOMAIN}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - LANGFUSE_HOST=${LANGFUSE_HOST}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
-
+    extra_hosts:
+      - ${LANGFUSE_ENDPOINT}
 volumes:
   n8n_data:
     driver: local
