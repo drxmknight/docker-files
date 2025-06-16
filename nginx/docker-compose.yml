@@ -30,6 +30,7 @@ services:
       retries: 20
     volumes:
       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      - ./conf.d:/etc/nginx/templates/conf.d:ro
       - ./certs:/etc/nginx/certs
     environment:
       NGINX_DOMAIN: ${DOMAIN}

@@ -1,0 +1,17 @@
+# Default server configuration
+server {
+    listen 80 default_server;
+    listen 443 ssl default_server;
+    ssl_certificate /etc/nginx/certs/${NGINX_DOMAIN}.crt;
+    ssl_certificate_key /etc/nginx/certs/${NGINX_DOMAIN}.key;
+    
+    location / {
+        return 404;
+    }
+
+    location /healthz {
+        access_log off;
+        add_header 'Content-Type' 'application/json';
+        return 200 '{"status": "ok"}'; 
+    }
+}
