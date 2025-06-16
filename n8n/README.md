@@ -11,17 +11,7 @@ cp .env.sample .env
 
 # Installation 
 
-1. Set up the environment variables in the `.env` file and load them:
+1. Start the n8n service using Docker Compose:
 ```bash
-export $(grep -v '^#' .env | xargs)
-```
-
-2. Validate the configuration:
-```bash
-kubectl kustomize . | envsubst > compiled.yaml
-```
-
-3. Deploy the resources:
-```bash
-kubectl apply -f compiled.yaml
+docker compose up -d --build
 ```

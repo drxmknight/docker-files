@@ -8,15 +8,21 @@ services:
     ports:
       - "127.0.0.1:5678:5678"
     environment:
+      # Deployment settings
       - N8N_HOST=${DOMAIN}
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=development
       - WEBHOOK_URL=https://${DOMAIN}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-      - LANGFUSE_HOST=${LANGFUSE_HOST}
+      # Langfuse Tracing
+      - LANGFUSE_BASEURL=${LANGFUSE_BASEURL}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      # Allow external packages
+      - NODE_FUNCTION_ALLOW_EXTERNAL=langfuse-langchain
+      # GOOGLE MODEL
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       # isolate n8n
       - N8N_DIAGNOSTICS_ENABLED=false
       - N8N_VERSION_NOTIFICATIONS_ENABLED=false
@@ -24,8 +30,6 @@ services:
       - EXTERNAL_FRONTEND_HOOKS_URLS=
       - N8N_DIAGNOSTICS_CONFIG_FRONTEND=
       - N8N_DIAGNOSTICS_CONFIG_BACKEND=
-
-
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
