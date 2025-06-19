@@ -23,6 +23,7 @@ services:
       - NODE_FUNCTION_ALLOW_EXTERNAL=langfuse-langchain
       # GOOGLE MODEL
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       # isolate n8n
       - N8N_DIAGNOSTICS_ENABLED=false
       - N8N_VERSION_NOTIFICATIONS_ENABLED=false
