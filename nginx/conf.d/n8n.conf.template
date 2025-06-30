@@ -3,33 +3,89 @@ server {
   server_name n8n.${NGINX_DOMAIN};
   ssl_certificate /etc/nginx/certs/${NGINX_DOMAIN}.crt;
   ssl_certificate_key /etc/nginx/certs/${NGINX_DOMAIN}.key;
+
   client_max_body_size 4096M;
 
-
+  # Basic headers
   proxy_set_header Host $host;
   proxy_set_header X-Real-IP $remote_addr;
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header X-Forwarded-Proto $scheme;
+
+  # Base timeouts
   proxy_connect_timeout 180s;
   proxy_send_timeout 300s;
   proxy_read_timeout 300s;
 
-  # WebSocket support
-  proxy_http_version 1.1;
-  proxy_set_header Upgrade $http_upgrade;
-  proxy_set_header Connection "upgrade";
-  proxy_buffering off;
-  
 
   location / {
     set $target "http://n8n:5678";
     proxy_pass $target;
+
+    # WebSocket support for n8n UI
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_buffering off;
   }
 
-  location ~ ^/(webhook|mcp|sse) {
+  location /mcp {
     set $target "http://n8n:5678";
     proxy_pass $target;
+    
+    # Allow MCP content types
+    proxy_set_header Accept "application/json, text/event-stream";
+    
+    # Disable buffering
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_request_buffering off;
+    
+    # For Servier-sent events
+    proxy_set_header Connection "";
+    proxy_http_version 1.1;
+    
+    # SSE specific headers
+    add_header X-Accel-Buffering no always;
+    add_header Cache-Control no-cache always;
+    
+    # Extended SSE timeouts
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+    
+    # Chunked encoding for variable responses
+    chunked_transfer_encoding on;
+    
+    # Keep important MCP Headers
+    proxy_pass_header Mcp-Session-Id;
+    proxy_pass_header Last-Event-ID;
+
+    # CORS
+    add_header Access-Control-Allow-Origin * always;
+    add_header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Content-Type, Accept, Mcp-Session-Id, Last-Event-ID" always;
+    
+    # Handle preflight OPTIONS
+    if ($request_method = OPTIONS) {
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Accept, Mcp-Session-Id, Last-Event-ID" always;
+        add_header Access-Control-Max-Age 3600 always;
+        return 204;
+    }
+  }
+
+
+  location ~ ^/(webhook|sse) {
+    set $target "http://n8n:5678";
+    proxy_pass $target;
+    
+    # Basic Streaming config
     gzip off;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
     proxy_set_header Connection "";
   }
 }
