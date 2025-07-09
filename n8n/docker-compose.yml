@@ -34,7 +34,6 @@ services:
       - N8N_DIAGNOSTICS_CONFIG_BACKEND=
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./local-files:/files
     extra_hosts:
       - ${LANGFUSE_ENDPOINT}
 volumes:
