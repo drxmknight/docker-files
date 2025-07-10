@@ -1,0 +1,9 @@
+services:
+  docling:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docling
+    volumes:
+      - ./data:/data
+    entrypoint: ["sleep", "infinity"]
