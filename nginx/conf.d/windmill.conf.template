@@ -1,0 +1,41 @@
+server {
+  listen 443 ssl;
+  server_name windmill.${NGINX_DOMAIN};
+  ssl_certificate /etc/nginx/certs/${NGINX_DOMAIN}.crt;
+  ssl_certificate_key /etc/nginx/certs/${NGINX_DOMAIN}.key;
+  client_max_body_size 4096M;
+
+  # WebSocket connections for LSP
+  location /ws/ {
+    set $target "http://lsp:3001";
+    proxy_pass $target;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # WebSocket support
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 86400;
+    proxy_send_timeout 86400;
+  }
+
+  # Main Windmill server - catch all other requests
+  location / {
+    set $target "http://windmill_server:8000";
+    proxy_pass $target;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # WebSocket support for general connections
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 86400;
+    proxy_send_timeout 86400;
+  }
+}
