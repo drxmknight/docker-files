@@ -1,0 +1,80 @@
+server {
+  listen 443 ssl;
+  server_name mcp-gateway.${NGINX_DOMAIN};
+  ssl_certificate /etc/nginx/certs/${NGINX_DOMAIN}.crt;
+  ssl_certificate_key /etc/nginx/certs/${NGINX_DOMAIN}.key;
+
+  client_max_body_size 4096M;
+
+  # Basic headers
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+  # Base timeouts
+  proxy_connect_timeout 180s;
+  proxy_send_timeout 300s;
+  proxy_read_timeout 300s;
+
+  # Root location - tu mcp-gateway app
+  location / {
+    set $target "http://mcp-gateway:5080";
+    proxy_pass $target;
+
+    # WebSocket support
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_buffering off;
+  }
+
+  # MCP servers dinámicos - /mcp/<server>
+  location ~ ^/mcp/([^/]+)$ {
+    set $server $1;
+    set $target "http://mcp-gateway:5080/mcp/$server";
+    proxy_pass $target;
+    
+    # MCP content types
+    proxy_set_header Accept "application/json, text/event-stream";
+    
+    # Disable buffering para streaming
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_request_buffering off;
+    
+    # Para Server-sent events
+    proxy_set_header Connection "";
+    proxy_http_version 1.1;
+    
+    # SSE headers
+    add_header X-Accel-Buffering no always;
+    add_header Cache-Control no-cache always;
+    
+    # Extended timeouts para MCP
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+    
+    # Chunked encoding
+    chunked_transfer_encoding on;
+    
+    # Preservar headers importantes de MCP
+    proxy_pass_header Mcp-Session-Id;
+    proxy_pass_header Last-Event-ID;
+    proxy_pass_header Content-Type;
+    
+    # CORS para MCP
+    add_header Access-Control-Allow-Origin * always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Content-Type, Accept, Authorization, Mcp-Session-Id, Last-Event-ID" always;
+    
+    # Handle preflight OPTIONS
+    if ($request_method = OPTIONS) {
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Accept, Authorization, Mcp-Session-Id, Last-Event-ID" always;
+        add_header Access-Control-Max-Age 3600 always;
+        return 204;
+    }
+  }
+}
