@@ -1,0 +1,19 @@
+services:
+  mcp-inspector:
+    image: node:24-alpine
+    command: npx -y @modelcontextprotocol/inspector
+    ports:
+      - "8085:8085"
+      - "3005:3005"
+    extra_hosts:
+    - mcp-gateway.eramz.local:192.168.0.12
+    environment:
+      - SERVER_PORT=8085
+      - CLIENT_PORT=3005
+      - HOST=0.0.0.0
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+
+networks:
+  default:
+    external: true
+    name: local_network
